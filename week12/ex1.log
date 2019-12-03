@@ -1,0 +1,4 @@
+2019-11-26 10:30:40,260 -- INFO -- info message: test text
+2019-11-26 10:30:40,261 -- WARNING -- warning message
+2019-11-26 10:30:40,261 -- ERROR -- error message
+2019-11-26 10:30:40,261 -- CRITICAL -- critical message
