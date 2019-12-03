@@ -81,8 +81,8 @@ class TaskTodoManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(status=TASK_TODO)
 
-    def done_tasks(self):
-        return self.filter(status=TASK_DONE)
+    def todo_tasks(self):
+        return self.filter(status=TASK_TODO)
 
     def filter_by_status(self, status):
         return self.filter(status=status)

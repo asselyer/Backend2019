@@ -1,18 +1,18 @@
 from django.contrib import admin
-from api.models import ProjectMember, Task, Project, Block, TaskComment, TaskDocument
+from api.models import Blog, BlogCategory, Post, PostComment, PostFile, FavoritePost
 
 
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+@admin.register(Blog)
+class BlogAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'creator',)
 
 
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'status', 'project', 'executor', 'creator')
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'created_at', 'creator')
 
 
-admin.site.register(ProjectMember)
-admin.site.register(Block)
-admin.site.register(TaskComment)
-admin.site.register(TaskDocument)
+admin.site.register(BlogCategory)
+admin.site.register(PostComment)
+admin.site.register(PostFile)
+admin.site.register(FavoritePost)

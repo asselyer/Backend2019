@@ -1,22 +1,16 @@
 from rest_framework import generics
 from rest_framework import mixins
 
-from api.models import Project, ProjectMember, TaskDocument, TaskComment
-from api.serializers import ProjectSerializer, ProjectMemberSerializer, DashBoardSerializer, TaskDocumentSerializer, TaskCommentSerializer
+from api.models import Blog, BlogCategory, Post, PostComment, PostFile, FavoritePost
+from api.serializers import BlogCategorySerializer, FavoritePostSerializer, BlogSerializer, PostChangeSerializer, PostShortSerializer, PostFullSerializer, PostCommentSerializer, PostMediaSerializer
 
 
-class ProjectMemberView(generics.ListCreateAPIView):
-    queryset = ProjectMember.objects.all()
-    serializer_class = ProjectMemberSerializer
 
-class TaskDocumentCreateView(generics.CreateAPIView):
-    queryset = TaskDocument.objects.all()
-    serializer_class = TaskDocumentSerializer
+class PostMediafileCreateView(generics.CreateAPIView):
+    queryset = PostFile.objects.all()
+    serializer_class = PostMediaSerializer
 
-class DashBoardView(generics.ListAPIView):
-    queryset = Project.objects.all()
-    serializer_class = DashBoardSerializer
 
-class TaskCommentCreateView(generics.CreateAPIView):
-    queryset = TaskComment.objects.all()
-    serializer_class = TaskCommentSerializer
+class PostCommentCreateView(generics.CreateAPIView):
+    queryset = PostComment.objects.all()
+    serializer_class = PostCommentSerializer

@@ -1,3 +1,3 @@
-from .views_api import TaskCommentAPIView, TaskDocumentAPIView
-from .view_generic import ProjectMemberView, DashBoardView, TaskDocumentCreateView, TaskCommentCreateView
-from .views_viewset import ProjectListViewSet, ProjectViewSet, TaskViewSet, BlockListViewSet, BlockDetailViewSet
+from .views_api import BlogCategoryAPIView, BlogCategoryDetailAPIView
+from .view_generic import PostMediafileCreateView, PostCommentCreateView
+from .views_viewset import FavoritePostsDetailViewSet, FavoritePostsViewSet, BlogViewSet, PostViewSet

@@ -1,19 +1,20 @@
 from django.urls import path
-from api.views import ProjectListViewSet, ProjectViewSet, TaskViewSet, TaskDocumentAPIView, TaskCommentAPIView, ProjectMemberView, BlockDetailViewSet, BlockListViewSet, TaskCommentCreateView, TaskDocumentCreateView
 from rest_framework import routers
-
+from api.views import PostMediafileCreateView, PostCommentCreateView, BlogCategoryAPIView, BlogCategoryDetailAPIView, FavoritePostsDetailViewSet, FavoritePostsViewSet, BlogViewSet, PostViewSet
 
 urlpatterns = [
-    path('blocks/', BlockListViewSet.as_view({'get': 'list', 'post': 'create'})),
-    path('blocks/<int:pk>', BlockDetailViewSet.as_view({'put': 'update', 'delete':'destroy'})),
-    path('task/comment', TaskCommentCreateView.as_view()),
-    path('task/document', TaskDocumentCreateView.as_view()),
+    path('blog/category', BlogCategoryAPIView.as_view()),
+    path('blog/category/<int:pk>', BlogCategoryDetailAPIView.as_view()),
+    path('post/comment', PostCommentCreateView.as_view()),
+    path('post/mediafile', PostMediafileCreateView.as_view()),
+    path('post/like', FavoritePostsViewSet),
+    path('post/like/<int:pk>', FavoritePostsDetailViewSet),
 
 ]
 
 router = routers.DefaultRouter()
-router.register('projects', ProjectViewSet, base_name='api')
-router.register('tasks', TaskViewSet, base_name='api')
+router.register('blogs', BlogViewSet, base_name='api')
+router.register('posts', PostViewSet, base_name='api')
 
 
 urlpatterns += router.urls

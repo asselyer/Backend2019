@@ -1,36 +1,66 @@
-from api.models import Project, Task, ProjectMember, TaskComment, TaskDocument, Block
+from api.models import Blog, BlogCategory, Post, PostComment, PostFile, FavoritePost
 from rest_framework import serializers
 
 from users.serializers import UserSerializer
 
-
-class BlockSerializer(serializers.ModelSerializer):
+class BlogCategorySerializer(serializers.ModelSerializer):
+    blogs_count = serializers.IntegerField(default=0, read_only=True)
     
     class Meta:
-        model = Block
+        model = BlogCategory
         fields = '__all__'
 
-class ProjectMemberSerializer(serializers.ModelSerializer):
-
+class BlogSerializer(serializers.ModelSerializer):
+    category = BlogCategorySerializer(many=True)
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    posts_count = serializers.IntegerField(default=0, read_only=True)
+    
     class Meta:
-        model = ProjectMember
-        fields = ('id', 'proj_user', 'project')
+        model = Blog
+        fields = '__all__'
 
-class ProjectSerializer2(serializers.ModelSerializer):
+class BlogSerializer1(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=300)
+    types = serializers.IntegerField()
+    desc = serializers.CharField(required=False)
+    category = BlogCategorySerializer(many=True)
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    def create(self, validated_data):
+        blog = Blog.objects.create(**validated_data)
+        return blog
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.types = validated_data.get('types', instance.types)
+        instance.desc = validated_data.get('desc', instance.desc)
+        instance.category_id = validated_data.get('category_id', instance.category_id)
+
+        instance.save()
+        return instance
+
+    def validate_types(self, value):
+        if 1 < value > 2:
+            raise serializers.ValidationError('types options: [1, 2]')
+        return value
+
+class PostSerializer1(serializers.ModelSerializer):
 
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    desc = serializers.CharField(required=False)
+    body = serializers.CharField(required=True)
 
     class Meta:
-        model = Project
-        fields = ('id', 'name','creator', 'desc' )
+        model = {Post}
+        fields = ('id', 'title','creator', )
 
-class ProjectSerializer(serializers.Serializer):
+class PostSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField(required=True)
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     tasks_count = serializers.IntegerField(default=0, read_only=True)
-    desc = serializers.CharField(required=False)
+    title = serializers.CharField(required=False)
+    body = serializers.CharField(required=True)
+
 
     def get_creator_name(self, obj):
         if obj.creator is not None:
@@ -38,105 +68,78 @@ class ProjectSerializer(serializers.Serializer):
         return obj.creator.username == 'Anonymus'
 
     def create(self, validated_data):
-        project = Project.objects.create(**validated_data)
-        return project
+        post = Post.objects.create(**validated_data)
+        return post
     
 
-class TaskDocumentSerializer(serializers.ModelSerializer):
-    document = serializers.FileField(required=False)
+class PostMediaSerializer(serializers.ModelSerializer):
+    mediafile = serializers.FileField(required=False)
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = TaskDocument
-        fields = ('id', 'document', 'creator', 'tasks')
+        model = PostFile
+        fields = ('id', 'mediafile', 'creator', 'posts')
 
-class TaskDocSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TaskDocument
-        fields = ['document']
+# class TaskDocSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = TaskDocument
+#         fields = ['document']
 
-class TaskCommentSerializer(serializers.ModelSerializer):
+class PostCommentSerializer(serializers.ModelSerializer):
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
-        model = TaskComment
-        fields = ('id', 'body', 'creator', 'created_at','tasks')
+        model = PostComment
+        fields = ('id', 'body', 'creator', 'created_at','posts')
 
-class TaskSerializer2(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField(max_length=300)
-    status = serializers.IntegerField()
-    description = serializers.CharField()
-    priority = serializers.IntegerField()
-    is_deleted = serializers.BooleanField(read_only=True)
-    project_id = serializers.IntegerField(write_only=True)
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
-    def create(self, validated_data):
-        task = Task.objects.create(**validated_data)
-        return task
-
-    def update(self, instance, validated_data):
-        instance.name = validated_data.get('name', instance.name)
-        instance.status = validated_data.get('status', instance.status)
-        instance.description = validated_data.get('description', instance.description)
-        instance.priority = validated_data.get('priority', instance.priority)
-        instance.project_id = validated_data.get('project_id', instance.project_id)
-
-        instance.save()
-        return instance
-
-    def validate_status(self, value):
-        if 1 < value > 3:
-            raise serializers.ValidationError('status options: [1, 2, 3]')
-        return value
-
-class TaskShortSerializer(serializers.ModelSerializer):
-    project_id = serializers.IntegerField(write_only=True)
+class PostShortSerializer(serializers.ModelSerializer):
+    blog_id = serializers.IntegerField(write_only=True)
     creator = UserSerializer(read_only=True)
-    executor = UserSerializer(read_only=True)
 
     #document = serializers.FileField(write_only=True)
     #document_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = Task
-        fields = ('id', 'name', 'status', 'project_id', 'executor','creator')
+        model = Post
+        fields = ('id', 'title', 'blog_id','creator')
 
     # def get_document_url(self, obj):
     #     if obj.document:
     #         return self.context['request'].build_absolute_uri(obj.document.url)
     #     return None
 
-class SetExecutorSerializer(serializers.ModelSerializer):
-    executor = UserSerializer()
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    # document = serializers.FileField(write_only=True)
-    # document_url = serializers.SerializerMethodField(read_only=True)
-    class Meta:
-        model = Task
-        fields = ('creator', 'executor')
+# class SetExecutorSerializer(serializers.ModelSerializer):
+#     executor = UserSerializer()
+#     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+#     # document = serializers.FileField(write_only=True)
+#     # document_url = serializers.SerializerMethodField(read_only=True)
+#     class Meta:
+#         model = Task
+#         fields = ('creator', 'executor')
 
 
 
-class TaskFullSerializer(TaskShortSerializer):
-    task_documents = TaskDocumentSerializer(many=True, read_only=True, required=False)
-    task_comments = TaskCommentSerializer(many=True, read_only=True, required=False)
+class PostFullSerializer(PostShortSerializer):
+    post_documents = PostMediaSerializer(many=True, read_only=True, required=False)
+    post_comments = PostCommentSerializer(many=True, read_only=True, required=False)
 
-    class Meta(TaskShortSerializer.Meta):
-        fields = TaskShortSerializer.Meta.fields + ('priority', 'description', 'task_documents', 'task_comments')
+    class Meta(PostShortSerializer.Meta):
+        fields = PostShortSerializer.Meta.fields + ('body', 'post_documents', 'post_comments')
 
-class TaskChangeSerializer(serializers.ModelSerializer):
+class PostChangeSerializer(serializers.ModelSerializer):
     # task_comments = TaskCommentSerializer(many=True, read_only=True, required=False)
-    task_documents = TaskDocumentSerializer(many=True, read_only=True, required=False)
+    post_documents = PostMediaSerializer(many=True, read_only=True, required=False)
 
     class Meta:
-        model = Task
-        fields = ('id', 'name', 'task_documents', 'status', 'project', 'executor', 'creator')
+        model = Post
+        fields = ('id', 'name', 'post_documents', 'creator')
 
+class FavoritePostSerializer(serializers.ModelSerializer):
+    posts = PostChangeSerializer()
+    users = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
+    class Meta:
+        model = FavoritePost
+        fields = '__all__'
 
-
-
-class DashBoardSerializer(ProjectSerializer2):
-    pass

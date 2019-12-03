@@ -9,38 +9,37 @@ from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 
-from api.models import Project, Task, Block, TaskComment
-from api.serializers import ProjectSerializer, TaskShortSerializer, TaskFullSerializer, TaskChangeSerializer, SetExecutorSerializer, BlockSerializer, TaskCommentSerializer, ProjectSerializer2
-
-from api.constants import TASK_TODO
+from api.models import Blog, BlogCategory, Post, PostComment, PostFile, FavoritePost
+from api.serializers import FavoritePostSerializer, BlogSerializer, PostChangeSerializer, PostShortSerializer, PostFullSerializer
+from api.constants import BLOG_PUBLIC
 from api.permissions import IsDeveloperPermission, CanCreateProjectPermission
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectListViewSet(mixins.RetrieveModelMixin,
-                         mixins.ListModelMixin,
+class FavoritePostsViewSet(mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
                          viewsets.GenericViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
+    queryset = FavoritePost.objects.all()
+    serializer_class = FavoritePostSerializer
 
 
-class ProjectDetailViewSet(mixins.RetrieveModelMixin,
+class FavoritePostsDetailViewSet(mixins.RetrieveModelMixin,
                            mixins.UpdateModelMixin,
                            mixins.DestroyModelMixin,
                            viewsets.GenericViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
+    queryset = FavoritePost.objects.all()
+    serializer_class = FavoritePostSerializer
 
 
-class ProjectViewSet(mixins.ListModelMixin,
+class BlogViewSet(mixins.ListModelMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                      mixins.CreateModelMixin,
                      mixins.DestroyModelMixin,
                      viewsets.GenericViewSet):
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer2
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
     permission_classes = (IsAuthenticated,)
 
 
@@ -49,49 +48,49 @@ class ProjectViewSet(mixins.ListModelMixin,
     
     @action(methods=['GET'], detail=False)
     def my(self, request):
-        projects = Project.objects.filter(creator=self.request.user)
-        serializer = self.get_serializer(projects, many=True)
+        blogs = Blog.objects.filter(creator=self.request.user)
+        serializer = self.get_serializer(blogs, many=True)
         return Response(serializer.data)
 
     @action(methods=['GET'], detail=True)
-    def tasks(self, request, pk):
+    def posts(self, request, pk):
         instance = self.get_object()
-        serializer = TaskShortSerializer(instance.tasks, many=True, context={
+        serializer = PostShortSerializer(instance.posts, many=True, context={
             'request': self.request
         })
         return Response(serializer.data)
 
 
 
-class TaskViewSet(mixins.CreateModelMixin,
+class PostViewSet(mixins.CreateModelMixin,
                   mixins.ListModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.RetrieveModelMixin,
                   mixins.DestroyModelMixin,
                   viewsets.GenericViewSet):
-    queryset = Task.objects.all()
+    queryset = Post.objects.all()
     permission_classes = (IsAuthenticated,)
     parser_classes = (MultiPartParser, FormParser, JSONParser,)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return TaskFullSerializer
-        if self.action == 'set_executor':
-            return SetExecutorSerializer
+            return PostFullSerializer
+        # if self.action == 'set_executor':
+        #     return SetExecutorSerializer
         if self.action in ['create', 'update']:
-            return TaskChangeSerializer
+            return PostChangeSerializer
         if self.action == 'list':
-            return TaskFullSerializer    
+            return PostShortSerializer    
         # if self.action in ['destroy']:
         #     return TaskChangeSerializer
 
-    @action(methods=['PUT'], detail=True)
-    def set_executor(self, request, pk):
-        instance = self.get_object()
-        instance.set_executor(request.data.get('executor_id'))
-        serializer = self.get_serializer(instance)
-        logger.info(f"{self.request.user} set as executor id: {request.data.get('executor_id')}")
-        return Response(serializer.data)
+    # @action(methods=['PUT'], detail=True)
+    # def set_executor(self, request, pk):
+    #     instance = self.get_object()
+    #     instance.set_executor(request.data.get('executor_id'))
+    #     serializer = self.get_serializer(instance)
+    #     logger.info(f"{self.request.user} set as executor id: {request.data.get('executor_id')}")
+    #     return Response(serializer.data)
 
     
     # def perform_destroy(self, instance):
@@ -99,7 +98,7 @@ class TaskViewSet(mixins.CreateModelMixin,
     
     def perform_create(self, serializer):
         serializer.save(creator=self.request.user)
-        logger.info(f"{self.request.user} created task: {serializer.data.get('name')}")
+        logger.info(f"{self.request.user} created post: {serializer.data.get('title')}")
         
     # def perform_create(self, serializer):
     #     serializer.save(creator=self.request.user)
@@ -108,17 +107,17 @@ class TaskViewSet(mixins.CreateModelMixin,
     #     logger.error(f"{self.request.user} created task: {serializer.data.get('name')}")
     #     logger.critical(f"{self.request.user} created task: {serializer.data.get('name')}")
 
-class BlockListViewSet(mixins.CreateModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
-    queryset = Block.objects.all()
-    serializer_class = BlockSerializer
+# class BlockListViewSet(mixins.CreateModelMixin,
+#                          mixins.ListModelMixin,
+#                          viewsets.GenericViewSet):
+#     queryset = Block.objects.all()
+#     serializer_class = BlockSerializer
 
 
-class BlockDetailViewSet(mixins.RetrieveModelMixin,
-                           mixins.UpdateModelMixin,
-                           mixins.DestroyModelMixin,
-                           viewsets.GenericViewSet):
-    queryset = Block.objects.all()
-    serializer_class = BlockSerializer
+# class BlockDetailViewSet(mixins.RetrieveModelMixin,
+#                            mixins.UpdateModelMixin,
+#                            mixins.DestroyModelMixin,
+#                            viewsets.GenericViewSet):
+#     queryset = Block.objects.all()
+#     serializer_class = BlockSerializer
 
