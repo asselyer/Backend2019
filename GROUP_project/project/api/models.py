@@ -1,48 +1,31 @@
 from django.db import models
 from users.models import MainUser
 
-from api.constants import BLOG_CATEGORIES, BLOG_TYPES, BLOG_PUBLIC, BLOG_PRIVATE, CATEG_LIFESTYLE
+from api.constants import BLOG_CATEGORIES, BLOG_TYPES, BLOG_PUBLIC, BLOG_PRIVATE, CATEG_LIFESTYLE,CATEG_MUSIC
 from utils.upload import post_mediafile_path
 from utils.validators import validate_extension, validate_file_size
 
 
 class CategoryMusicManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(blog_cat=CATEG_MUSIC)
+        return super().get_queryset().filter(blog_category=CATEG_MUSIC)
 
     def music_blogs(self):
-        return self.filter(blog_cat=CATEG_MUSIC)
+        return self.filter(blog_category=CATEG_MUSIC)
 
-    def filter_by_category(self, blog_cat):
-        return self.filter(blog_cat=blog_cat)
+    def filter_by_category(self, blog_category):
+        return self.filter(blog_category=blog_category)
 
 
 class CatLifeStyleManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(blog_cat=CATEG_LIFESTYLE)
+        return super().get_queryset().filter(blog_category=CATEG_LIFESTYLE)
 
     def lifestyle_blogs(self):
-        return self.filter(blog_cat=CATEG_LIFESTYLE)
+        return self.filter(blog_category=CATEG_LIFESTYLE)
 
-    def filter_by_category(self, status):
-        return self.filter(blog_cat=blog_cat)
-
-class BlogCategory(models.Model):
-    blog_cat = models.PositiveIntegerField(choices=BLOG_CATEGORIES, default=CATEG_LIFESTYLE)
-    music_blogs = CategoryMusicManager()
-    lifestyle_blogs = CatLifeStyleManager()
-
-    class Meta:
-        verbose_name = 'Категория'
-        verbose_name_plural = 'Категории'
-
-    def __str__(self):
-        return self.blog_cat
-
-    @property
-    def blogs_count(self):
-        return self.blogs.count()
-
+    def filter_by_category(self, blog_category):
+        return self.filter(blog_category=blog_category)
 
 class BlogPrivateManager(models.Manager):
     def get_queryset(self):
@@ -70,7 +53,6 @@ class Blog(models.Model):
     name = models.CharField(max_length=255)
     desc = models.TextField(default='')
     types = models.PositiveIntegerField(choices=BLOG_TYPES, default=BLOG_PUBLIC)
-    category = models.ForeignKey(BlogCategory, null=True,related_name='blogs', on_delete=models.CASCADE)
     creator = models.ForeignKey(MainUser, on_delete=models.CASCADE, related_name='created_blogs')
     public_blogs = BlogPrivateManager()
     private_blogs = BlogPublicManager()
@@ -81,11 +63,31 @@ class Blog(models.Model):
         verbose_name_plural = 'Блоги'
 
     def __str__(self):
-        return '{}: {}'.format(self.id, self.name, self.types, self.category, self.desc)
+        return '{}: {}'.format(self.id,self.name)
     
     @property
     def posts_count(self):
         return self.posts.count()
+
+class BlogCategory(models.Model):
+    blogs = models.ForeignKey(Blog, null=True,related_name='categories', on_delete=models.CASCADE)
+    blog_category = models.PositiveIntegerField(choices=BLOG_CATEGORIES, default=CATEG_LIFESTYLE)
+    music_blogs = CategoryMusicManager()
+    lifestyle_blogs = CatLifeStyleManager()
+    objects = models.Manager()
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return '{}: {}'.format(self.id,self.blog_category)
+
+    @property
+    def blogs_count(self):
+        return self.blogs.count()
+
+
 
 class BasePost(models.Model):
     title = models.CharField(max_length=300, null=True, blank=True)

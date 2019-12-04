@@ -3,21 +3,43 @@ from rest_framework import serializers
 
 from users.serializers import UserSerializer
 
+
 class BlogCategorySerializer(serializers.ModelSerializer):
-    blogs_count = serializers.IntegerField(default=0, read_only=True)
     
     class Meta:
         model = BlogCategory
-        fields = '__all__'
+        fields = ('id', 'blogs', 'blog_category')
+
+    # def create(self, validated_data):
+    #     categories_data = validated_data.pop('categories')
+    #     category = BlogCategory.objects.create(**validated_data)
+    #     for category_data in categories_data:
+    #         Blog.objects.create(category=category, **category_data)
+    #     return category_data
+    # def create(self, validated_data):
+    #     blogs_data = validated_data.pop('blogs')
+    #     blogs = Blog.create(Blog(), validated_data=blogs_data)
+    #     category, created = BlogCategory.objects.update_or_create(blogs=blogs)
+    #     return category
 
 class BlogSerializer(serializers.ModelSerializer):
-    category = BlogCategorySerializer(many=True)
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     posts_count = serializers.IntegerField(default=0, read_only=True)
-    
+    categories = BlogCategorySerializer(many=True, read_only=True, required=False)
     class Meta:
         model = Blog
-        fields = '__all__'
+        fields = ('id', 'name', 'desc', 'types', 'creator', 'categories', 'posts_count')
+
+    # def create(self, validated_data):
+    #     categories_data = validated_data.pop('categories')
+    #     blog = Blog.objects.create(**validated_data)
+    #     return blog
+    # def create(self, validated_data):
+
+    #     categories_data = validated_data.pop('categories')
+    #     categories = BlogCategorySerializer.create(BlogCategorySerializer(), validated_data=categories_data)
+    #     blog, created = Blog.objects.update_or_create(categories=categories)
+    #     return blog
 
 class BlogSerializer1(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)

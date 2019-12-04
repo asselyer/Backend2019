@@ -14,3 +14,7 @@ class PostMediafileCreateView(generics.CreateAPIView):
 class PostCommentCreateView(generics.CreateAPIView):
     queryset = PostComment.objects.all()
     serializer_class = PostCommentSerializer
+
+class BlogCategoryCreateView(generics.CreateAPIView):
+    queryset = BlogCategory.objects.all()
+    serializer_class = BlogCategorySerializer
